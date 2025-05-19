@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to WebP Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+          
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 15px;
+            border: none;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>JPEG/PNG to WebP Converter</h2>
+        <input type="file" id="upload" accept="image/jpeg, image/png">
+        <br>
+        <button onclick="convertToWebP()">Convert to WebP</button>
+        <br>
+        <a id="download" style="display: none; margin-top: 10px;">Download WebP</a>
+        <canvas id="canvas"></canvas>
+    </div>
+    <script>
+        function convertToWebP() {
+    const fileInput = document.getElementById('upload');
+    const canvas = document.getElementById('canvas');
+    const downloadLink = document.getElementById('download');
+
+    if (!fileInput.files.length) {
+        alert('Please select an image first.');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    const img = new Image();
+
+    reader.onload = function(event) {
+        img.src = event.target.result;
+    };
+
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        let quality = 0.8; // Initial quality
+
+        function adjustQuality(blob) {
+            if (blob.size > 60000 && quality > 0.1) { // 60KB limit
+                quality -= 0.05;
+                canvas.toBlob(adjustQuality, 'image/webp', quality);
+            } else {
+                const url = URL.createObjectURL(blob);
+                const originalName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                downloadLink.href = url;
+                downloadLink.download = `${originalName}.webp`;
+                downloadLink.style.display = 'inline';
+                downloadLink.innerText = 'Download WebP';
+            }
+        }
+
+        canvas.toBlob(adjustQuality, 'image/webp', quality);
+    };
+
+    reader.readAsDataURL(file);
+}
+
+    </script>
+</body>
+</html>
+
